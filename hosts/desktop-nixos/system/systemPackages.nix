@@ -25,6 +25,7 @@
     probe-rs
   
     (nixpkgs-unstable.ollama.override { acceleration = "cuda"; })
+    cudaPackages.cudatoolkit
     
   ];
 }

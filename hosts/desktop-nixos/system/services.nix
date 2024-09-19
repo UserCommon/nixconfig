@@ -99,6 +99,7 @@
   # ollama
   services.ollama = {
     enable = true;
-    package = (nixpkgs-unstable.ollama.override { acceleration = "cuda"; });
+    package = nixpkgs-unstable.ollama;
+    acceleration = "cuda";
   };
 }
