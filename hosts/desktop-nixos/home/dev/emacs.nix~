@@ -1,0 +1,138 @@
+{ config, pkgs, ... }:
+let
+    disableGarbage = ''
+        ;; Disable stupid shit
+        (setq inhibit-startup-message t)
+        (menu-bar-mode -1)
+        (scroll-bar-mode -1)
+        (tool-bar-mode -1)
+        (tooltip-mode -1)
+        (set-fringe-mode 10)
+        (setq scroll-conservatively 101)
+        (setq visible-bell t)
+    '';
+
+    setFontAndTheme = ''
+        ;; Font things
+        (set-face-attribute 'default nil
+                            :font "Fira Code"
+                            :height 180)
+        ;; Theming
+        (load-theme 'tango-dark)
+    '';
+
+    indentationSettings = ''
+        (setq-default tab-width 4)
+    '';
+
+    evilSettings = ''
+        ;; Set up package.el to work with MELPA
+        (require 'package)
+        (add-to-list 'package-archives
+                    '("melpa" . "https://melpa.org/packages/"))
+        (package-refresh-contents)
+
+        ;; Download Evil
+        (unless (package-installed-p 'evil)
+        (package-install 'evil))
+
+        ;; Enable Evil
+        (require 'evil)
+        (evil-mode 1)
+        (custom-set-variables
+        ;; custom-set-variables was added by Custom.
+        ;; If you edit it by hand, you could mess it up, so be careful.
+        ;; Your init file should contain only one such instance.
+        ;; If there is more than one, they won't work right.
+        '(custom-safe-themes
+        '("4dc7867e8f2fcdf6a80da6b42eed226c3eb9b164efaf57c54b84c116556b0e34" default))
+        '(package-selected-packages '(evil)))
+        (custom-set-faces
+        ;; custom-set-faces was added by Custom.
+        ;; If you edit it by hand, you could mess it up, so be careful.
+        ;; Your init file should contain only one such instance.
+        ;; If there is more than one, they won't work right.
+        )
+    '';
+
+    packageManagers = ''
+        (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                                 ("org" . "https://orgmode.org/elpa/")
+                                 ("elpa" . "https://elpa.gnu.org/packages/)))
+    '';
+
+    bindkeySettings = ''
+        (use-package bind-key
+            :ensure t
+            :config
+            (add-to-list 'same-window-buffer-names "*Personal Keybindings*"))
+    '';
+    doomModeLine = ''
+        (use-package doom-modeline
+            :ensure t
+            :init (doom-modeline-mode 1)
+            :custom ((doom-modeline-height 15)))
+    '';
+
+    lineNumbers = ''
+        (column-number-mode)
+        (global-display-line-numbers-mode t)
+        (setq display-line-numbers 'relative)
+
+        ;; Disable numbers for some
+        (dolist (mode '(org-mode-hook
+                        term-mode-hook
+                        eshell-mode-hook))
+        (add-hook mode (lambda () (display-line-numbers 0))))
+    '';
+
+    usefulBinds = ''
+        (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+    '';
+    
+in
+{
+  programs.emacs = {
+    enable = true;
+    package = pkgs.emacs;  # replace with pkgs.emacs-gtk, or a version provided by the community overlay if desired.
+    extraConfig = ''
+        ${disableGarbage}
+        ${usefulBinds}
+        ${setFontAndTheme}
+        ${indentationSettings}
+        ${bindkeySettings}
+        ${doomModeLine}
+        ${evilSettings}
+    '';
+
+    extraPackages = epkgs: with epkgs; [
+        use-package
+        magit
+        lsp-mode
+        lsp-ui
+        ccls
+        python-mode
+        rust-mode
+        nix-mode
+        json-mode
+        smart-tabs-mode
+        auto-complete
+        web-mode
+        org
+        evil
+        counsel
+        ivy
+        which-key
+        flycheck
+        
+
+        doom-themes # NOT WORKING AND MODELINE TOO
+        doom-modeline
+    ];
+  };
+  home.file = {
+    ".emacs.d/init.el" = {
+      source = config.lib.file.mkOutOfStoreSymlink ./emacs/init.el;
+    };
+  };
+}

@@ -1,0 +1,14 @@
+{pkgs, ...}:
+
+{
+  programs.git = {
+    enable = true;
+    userName = "usercommon";
+    userEmail = "kirilnenashev@gmail.com";
+    extraConfig = {
+      credential.helper = "${
+      
+      }/bin/git-credential-libsecret"
+    };
+  };
+}
